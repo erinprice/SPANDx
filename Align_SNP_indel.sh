@@ -16,9 +16,9 @@
 # Make sure the file checks make sense if customising different sections of the pipeline
 #
 # Written by Derek Sarovich - Menzies School of Health Research
-# Version 2.1
+# Version 2.2
 # v2.0-2.1 added SGE header
-#
+# v2.1-2.2 added support for newer BWA algorithms and version control, E Price
 # 
 #
 ############################################################################
@@ -114,8 +114,22 @@ fi
 
 if [ "$tech" == Illumina -o "$tech" == Illumina_old ]; then
     if [ "$tech" == Illumina -a "$pairing" == PE ]; then
-        if [ ! -s "$SAI1" -a ! -s "$GATK_REALIGNED_BAM" ]; then
-            log_eval $PBS_O_WORKDIR "$BWA aln $REF_FILE $READ1_FILE -t 1 -f $SAI1 && $BWA aln $REF_FILE $READ2_FILE -t 1 -f $SAI2"
+        if [ ! -s "$GATK_REALIGNED_BAM" ]; then
+	#run version checker for bwa
+	
+            #log_eval $PBS_O_WORKDIR "$BWA aln $REF_FILE $READ1_FILE -t 1 -f $SAI1 && $BWA aln $REF_FILE $READ2_FILE -t 1 -f $SAI2" 
+			
+			# you'll want to edit this command for bwa mem
+			log_eval $PBS_O_WORKDIR "$BWA mem -t 1 -R '@RG\tID:${org}\tSM:${seq}\tPL:ILLUMINA' $REF_FILE $READ1_FILE $READ2_FILE > $SAM"
+			
+			#default values for bwa mem
+			# match score (-A = 1)
+			# mismatch penalty (-B = 4)
+			# gap open penalty insertions,deletions (-O = 6,6)
+			# gap extension penalty formula -O + -E*k (k is gap size)
+			# penalty for unpaired read pair (-U = 17)
+			
+			
         fi
 	fi
 	if [ "$tech" == Illumina -a "$pairing" == SE ]; then
@@ -135,7 +149,7 @@ if [ "$tech" == Illumina -o "$tech" == Illumina_old ]; then
 	fi
     if [ "$pairing" == PE ]; then
 	    if [ ! -s "$BAM_UNIQUE_FILE.bam" -a ! -s "$GATK_REALIGNED_BAM" ]; then
-            log_eval $PBS_O_WORKDIR "$BWA sampe -r '@RG\tID:${org}\tSM:${seq}\tPL:ILLUMINA' $REF_FILE $SAI1 $SAI2 $READ1_FILE $READ2_FILE > $SAM"
+            #log_eval $PBS_O_WORKDIR "$BWA sampe -r '@RG\tID:${org}\tSM:${seq}\tPL:ILLUMINA' $REF_FILE $SAI1 $SAI2 $READ1_FILE $READ2_FILE > $SAM"
             log_eval $PBS_O_WORKDIR "$SAMTOOLS view -h -b -S -q 1 $SAM | $SAMTOOLS sort - $BAM_UNIQUE_FILE"
         fi
 	fi
