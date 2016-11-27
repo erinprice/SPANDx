@@ -271,6 +271,20 @@ if [ -z "$bwa_test" ]; then
 	    echo "ERROR: SPANDx requires BWA to function. Please make sure the correct path is specified in SPANDx.config"
 		exit 1
 fi
+
+#BWA version check
+$BWA &> bwa_temp.txt
+BWA_VERSION=`cat bwa_temp.txt | grep 'Version' | awk '{ print $2 }' |cut -d'.' -f 1,2` 
+rm bwa_temp.txt
+echo $BWA_VERSION
+
+if [ "$BWA_VERSION" < 0.7 ]; then
+	BWA_OLD=1
+else
+	BWA_OLD=0
+fi
+
+
 if [ -z "$samtools_test" ]; then
 	    echo "ERROR: SPANDx requires SAMtools to function. Please make sure the correct path is specified in SPANDx.config"
 		exit 1
